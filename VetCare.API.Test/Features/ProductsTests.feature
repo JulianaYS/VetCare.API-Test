@@ -4,7 +4,7 @@ I want to add Product through API
 So that it can be available to applications.
 
     Background: 
-        Given the Endpoint https://localhost:7126/api/v1/products is available
+        Given the Endpoint https://localhost:5013/api/v1/products is available
 
     @product-adding
     Scenario: Add Product
