@@ -1,13 +1,19 @@
-﻿namespace VetCare.API.Test.Steps;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using TechTalk.SpecFlow;
+
+namespace VetCare.API.Test.Steps;
 
 [Binding]
-public sealed class CalculatorStepDefinitions
+public sealed class ProductsStepDefinitions
 {
     // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
 
     private readonly ScenarioContext _scenarioContext;
 
-    public CalculatorStepDefinitions(ScenarioContext scenarioContext)
+    public ProductsStepDefinitions(ScenarioContext scenarioContext)
     {
         _scenarioContext = scenarioContext;
     }
@@ -16,7 +22,7 @@ public sealed class CalculatorStepDefinitions
     public void GivenTheFirstNumberIs(int number)
     {
         //TODO: implement arrange (precondition) logic
-        // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata
+        // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata 
         // To use the multiline text or the table argument of the scenario,
         // additional string/Table parameters can be defined on the step definition
         // method. 
@@ -28,7 +34,7 @@ public sealed class CalculatorStepDefinitions
     public void GivenTheSecondNumberIs(int number)
     {
         //TODO: implement arrange (precondition) logic
-        // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata
+        // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata 
         // To use the multiline text or the table argument of the scenario,
         // additional string/Table parameters can be defined on the step definition
         // method. 
