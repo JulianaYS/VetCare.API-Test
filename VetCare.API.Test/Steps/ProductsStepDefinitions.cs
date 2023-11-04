@@ -1,60 +1,87 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mime;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
+using Newtonsoft.Json;
+using SpecFlow.Internal.Json;
 using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Assist;
+using VetCare.API.Store.Resources;
+using Xunit;
 
 namespace VetCare.API.Test.Steps;
 
 [Binding]
-public sealed class ProductsStepDefinitions
+public sealed class ProductStepDefinitions : WebApplicationFactory<Program>
 {
-    // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
-
-    private readonly ScenarioContext _scenarioContext;
-
-    public ProductsStepDefinitions(ScenarioContext scenarioContext)
+    private readonly WebApplicationFactory<Program> _factory;
+    public ProductStepDefinitions(WebApplicationFactory<Program> factory)
     {
-        _scenarioContext = scenarioContext;
+        _factory = factory;
     }
 
-    [Given("the first number is (.*)")]
-    public void GivenTheFirstNumberIs(int number)
-    {
-        //TODO: implement arrange (precondition) logic
-        // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata 
-        // To use the multiline text or the table argument of the scenario,
-        // additional string/Table parameters can be defined on the step definition
-        // method. 
+    private HttpClient Client { get; set; }
+    private Uri BaseUri { get; set; }
+    private Task<HttpResponseMessage> Response { get; set; }
 
-        _scenarioContext.Pending();
+    [Given(@"the Endpoint https://localhost:(.*)/api/v(.*)/products is available")]
+    public void GivenTheEndpointHttpsLocalhostApiVProductsIsAvailable(int port, int version)
+    {
+        BaseUri = new Uri($"https://localhost:{port}/api/v{version}/products");
+        Client = _factory.CreateClient(new WebApplicationFactoryClientOptions { 
+            BaseAddress = BaseUri });
+    }
+    
+    [When(@"a Post Request is sent")]
+    public void WhenAPostRequestIsSent(Table saveProductResource)
+    {
+        var resource = saveProductResource.CreateSet<SaveProductResource>().First();
+        var content = new StringContent(resource.ToJson(), Encoding.UTF8, 
+            MediaTypeNames.Application.Json);
+        Response = Client.PostAsync(BaseUri, content);
     }
 
-    [Given("the second number is (.*)")]
-    public void GivenTheSecondNumberIs(int number)
+    [Then(@"A Response is received with Status (.*)")]
+    public void ThenAResponseIsReceivedWithStatus(int expectedStatus)
     {
-        //TODO: implement arrange (precondition) logic
-        // For storing and retrieving scenario-specific data see https://go.specflow.org/doc-sharingdata 
-        // To use the multiline text or the table argument of the scenario,
-        // additional string/Table parameters can be defined on the step definition
-        // method. 
-
-        _scenarioContext.Pending();
+        var expectedStatusCode = ((HttpStatusCode)expectedStatus).ToString();
+        var actualStatusCode = Response.Result.StatusCode.ToString();
+ 
+        Assert.Equal(expectedStatusCode, actualStatusCode);
+    }
+    
+    [Then(@"a Product Resource is included in Response Body")]
+    public async Task ThenAProductResourceIsIncludedInResponseBody(Table 
+        expectedTutorialResource)
+    {
+        var expectedResource = expectedTutorialResource.CreateSet<ProductResource>().First();
+        var responseData = await Response.Result.Content.ReadAsStringAsync();
+        var resource = JsonConvert.DeserializeObject<ProductResource>(responseData);
+        Assert.Equal(expectedResource.Name, resource.Name);
+    }
+    
+    [Given(@"A Product is already stored")]
+    public async void GivenAProductIsAlreadyStored(Table 
+        saveProductResource)
+    {
+        var resource = saveProductResource.CreateSet<SaveProductResource>().First();
+        var content = new StringContent(resource.ToJson(), Encoding.UTF8, MediaTypeNames.Application.Json);
+        Response = Client.PostAsync(BaseUri, content);
+        var responseData = await Response.Result.Content.ReadAsStringAsync();
+        var responseResource = JsonConvert.DeserializeObject<ProductResource>(responseData);
+        Assert.Equal(resource.Name, responseResource.Name);
     }
 
-    [When("the two numbers are added")]
-    public void WhenTheTwoNumbersAreAdded()
+    [Then(@"An Error Message is returned in Response Body, with value ""(.*)""")]
+    public void ThenAnErrorMessageIsReturnedWithValue(string 
+        expectedMessage)
     {
-        //TODO: implement act (action) logic
-
-        _scenarioContext.Pending();
+        var message = Response.Result.Content.ReadAsStringAsync().Result;
+        Assert.Equal(expectedMessage, message);
     }
 
-    [Then("the result should be (.*)")]
-    public void ThenTheResultShouldBe(int result)
-    {
-        //TODO: implement assert (verification) logic
-
-        _scenarioContext.Pending();
-    }
 }
